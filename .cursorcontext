@@ -1,0 +1,71 @@
+
+# Overall Objective:
+# To develop a Minimum Viable Product (MVP) for a movie alert system within 4 hours.
+
+# 1. Functional Context:
+#    - The application will function as a movie alert system.
+#    - Users will provide a movie name and their contact details (mobile number and email).
+#    - The system will:
+#        a) Scrape movie listings from ticket booking platforms.
+#        b) Detect when the specified movie is listed.
+#        c) Send notifications to the user via SMS and email.
+#        d) Provide a basic web UI for users to track the movies they are interested in.
+
+# 2. Technical Context:
+#    - Backend: Spring Boot (Maven/Gradle-based) for project setup and RESTful API structure.
+#        -   Use the latest stable version of Spring Boot.
+#        -   Follow Spring Boot best practices for project structure, configuration, and dependency management.
+#        -   Implement RESTful API design principles: statelessness, resource-based URLs, standard HTTP methods.
+#    - Database: PostgreSQL on AWS RDS for storing scraped data and user information.
+#        -   Design a normalized database schema to ensure data integrity and avoid redundancy.
+#        -   Use appropriate data types and constraints.
+#        -   Implement database connection pooling.
+#        -   Plan for scalability: consider future sharding and use of read replicas.
+#    - Web Scraping: Python with Scrapy for scraping movie booking platforms and Selenium for JavaScript-heavy sites.
+#        -   Write efficient and robust Scrapy spiders to extract movie listing data.
+#        -   Handle website changes and errors gracefully.
+#        -   Use Selenium only when necessary for dynamic content; optimize its usage.
+#        -   Implement proper logging and error handling in the scraping module.
+#    - Notification System: AWS SNS or Twilio for SMS notifications and AWS SES or SendGrid for email notifications.
+#        -   Integrate with the chosen notification services using their respective SDKs or APIs.
+#        -   Implement asynchronous notification sending to avoid blocking the main application thread.
+#        -   Log all sent notifications and their status.
+#        -   Handle potential failures in notification delivery.
+#    - Frontend: React or HTML for the basic UI.
+#        -   If using React:
+#            -   Follow React best practices for component structure, state management, and data flow.
+#            -   Design a simple, responsive UI for the MVP.
+#            -   Handle API interactions asynchronously.
+#        -   If using HTML:
+#            -   Write clean, semantic HTML.
+#            -   Use CSS for styling.
+#            -   Consider minimal JavaScript for interactivity if needed.
+#    - Deployment: Backend on AWS EC2 and PostgreSQL on AWS RDS.
+#        -   Set up appropriate security groups and network configurations for EC2 and RDS.
+#        -   Automate deployment if possible.
+#        -   Implement basic monitoring and logging for the deployed application.
+
+# 3. Operational Context:
+#    - Scalability: Design the architecture to be scalable to handle potential virality, including:
+#        a) Database scalability: read replicas, connection pooling, consider future sharding.
+#        b) Server infrastructure: load balancing, auto-scaling, containerization (future consideration).
+#        c) Caching: in-memory (initial), plan for distributed caching (future).
+#    - Modularity: Create well-defined, loosely coupled modules for independent development, deployment, and scaling.
+#        -   Apply appropriate design patterns (e.g., layered architecture) to ensure separation of concerns.
+#        -   Minimize dependencies between modules.
+#    - API Design: Develop a stateless RESTful API, potentially incorporating an API Gateway.
+#        -   Design a RESTful API following best practices.
+#        -   Consider using an API Gateway for routing, authentication, and rate limiting.
+#    - Error Handling and Logging: Implement robust error handling and logging for debugging, monitoring, and auditing.
+#        -   Implement consistent error handling throughout the application.
+#        -   Use a logging framework to log events, errors, and warnings.
+#    - Testing: Include unit tests (JUnit, PyTest) and end-to-end testing.
+#        -   Write unit tests for backend components (Spring Boot) using JUnit.
+#        -   Write unit tests for Python scraping modules using PyTest.
+#        -   Implement basic end-to-end tests to verify the application's functionality.
+#    - Optimization: Optimize the scraper performance.
+#         -   Optimize Scrapy spiders for speed and efficiency.
+#         -   Minimize the use of Selenium where possible.
+# ```
+
+This expanded `cursor_rules.txt` provides more specific guidance for Cursor AI, especially concerning best practices for the chosen tech stack.
