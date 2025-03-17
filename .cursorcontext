@@ -68,4 +68,4 @@
 #         -   Minimize the use of Selenium where possible.
 # ```
 
-This expanded `cursor_rules.txt` provides more specific guidance for Cursor AI, especially concerning best practices for the chosen tech stack.
+This expanded `.cursorrules` provides more specific guidance for Cursor AI, especially concerning best practices for the chosen tech stack.
