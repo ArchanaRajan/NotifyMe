@@ -1,15 +1,15 @@
 package com.notifyme.controller;
 
+import com.notifyme.model.MovieShow;
 import com.notifyme.service.NotificationService;
+import com.notifyme.service.scraper.BookMyShowScraperService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -18,6 +18,9 @@ public class TestController {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private BookMyShowScraperService bookMyShowScraperService;
 
     @PostMapping("/simulate-release")
     public ResponseEntity<String> simulateMovieRelease(
@@ -30,5 +33,14 @@ public class TestController {
         
         notificationService.processMovieRelease(movieName, location, date);
         return ResponseEntity.ok("Movie release simulation completed");
+    }
+
+    @PostMapping("/scrape")
+    public ResponseEntity<List<MovieShow>> testScraping(
+            @RequestParam String movieName,
+            @RequestParam String location) {
+        log.info("Manual scraping triggered for movie: {} in location: {}", movieName, location);
+        List<MovieShow> shows = bookMyShowScraperService.scrapeMovieShows(movieName, location);
+        return ResponseEntity.ok(shows);
     }
 } 
