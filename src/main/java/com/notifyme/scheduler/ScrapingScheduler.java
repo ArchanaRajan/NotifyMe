@@ -19,16 +19,12 @@ public class ScrapingScheduler {
     // List of movies to monitor
     private final List<String> moviesToMonitor = Arrays.asList(
         "Interstellar",
-        "Dragon"
-    );
+        "Snow White");
 
     // List of locations to monitor
-    private final List<String> locationsToMonitor = Arrays.asList(
-        "Chennai",
-        "Bangalore"
-    );
+    private final List<String> locationsToMonitor = Arrays.asList("Bangalore", "Chennai");
 
-    @Scheduled(cron = "0 */15 * * * *") // Run every 15 minutes
+    @Scheduled(cron = "0 */3 * * * *") // Run every 3 minutes
     public void scrapeBookMyShow() {
         log.info("Starting BookMyShow scraping job");
         for (String movie : moviesToMonitor) {

@@ -29,9 +29,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     
     // Spring Retry
-    implementation 'org.springframework:spring-aspects'
-    implementation 'org.springframework.retry:spring-retry:2.0.5'
+    implementation 'org.springframework.retry:spring-retry'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
+    
+    // Web Scraping
+    implementation 'org.jsoup:jsoup:1.15.4'
+    implementation 'org.seleniumhq.selenium:selenium-java:4.8.1'
+    implementation 'io.github.bonigarcia:webdrivermanager:5.3.2'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
     
     // Database
     runtimeOnly 'org.postgresql:postgresql'

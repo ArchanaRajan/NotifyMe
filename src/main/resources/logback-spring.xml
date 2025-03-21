@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+    <property name="LOGS" value="logs" />
+
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>
+                %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%logger{1}): %msg%n%throwable
+            </pattern>
+        </layout>
+    </appender>
+
+    <!-- Application Logs -->
+    <appender name="ApplicationLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/application.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d %p %logger{1} [%t] %m%n</pattern>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGS}/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!-- BookMyShow Scraping Logs -->
+    <appender name="BookMyShowScrapingLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/scraping/bookmyshow/bookmyshow.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%msg%n</pattern>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGS}/scraping/bookmyshow/bookmyshow.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!-- BookMyShow Error Logs -->
+    <appender name="BookMyShowErrorLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/scraping/bookmyshow/bookmyshow-error.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d %p %logger{1} [%t] %m%n</pattern>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGS}/scraping/bookmyshow/bookmyshow-error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Root Logger -->
+    <root level="info">
+        <appender-ref ref="Console" />
+        <appender-ref ref="ApplicationLog" />
+    </root>
+
+    <!-- Application Logger -->
+    <logger name="com.notifyme" level="DEBUG" additivity="false">
+        <appender-ref ref="Console" />
+        <appender-ref ref="ApplicationLog" />
+    </logger>
+
+    <!-- BookMyShow Scraping Logger -->
+    <logger name="com.notifyme.service.scraper" level="INFO" additivity="false">
+        <appender-ref ref="BookMyShowScrapingLog" />
+        <appender-ref ref="BookMyShowErrorLog" />
+    </logger>
+</configuration>
