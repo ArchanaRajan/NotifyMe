@@ -20,7 +20,6 @@ import java.util.Optional;
 public class PVRScraper extends BaseScraper {
 
     private static final String BASE_URL = "https://www.pvrcinemas.com";
-    private static final String SEARCH_URL = BASE_URL + "/movies/%s";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("EEE, MMM dd, yyyy");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("hh:mm a");
 
@@ -44,9 +43,8 @@ public class PVRScraper extends BaseScraper {
     public List<MovieShow> scrapeMovieShows(String movieName, String location) {
         List<MovieShow> shows = new ArrayList<>();
         try {
-            String url = String.format(SEARCH_URL, movieName.toLowerCase().replace(" ", "-"));
             log.info("Scraping PVR shows for movie: {} in location: {}", movieName, location);
-            navigateTo(url);
+            navigateTo(BASE_URL);
 
             // Wait for movie cards to load
             List<WebElement> movieCards = findElements(MOVIE_CARD);
