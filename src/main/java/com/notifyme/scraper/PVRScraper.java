@@ -66,15 +66,17 @@ public class PVRScraper extends BaseScraper {
                         String priceText = priceElement.get().getText().replaceAll("[^0-9.]", "");
                         double price = Double.parseDouble(priceText);
                         
-                        MovieShow show = new MovieShow(
-                            nameElement.get().getText(),
-                            location,
-                            theaterElement.get().getText(),
-                            LocalDate.now(),
-                            showTime,
-                            bookingLinkElement.get().getAttribute("href"),
-                            price
-                        );
+                        MovieShow show = MovieShow.builder()
+                                .movieName(movieName)
+                                .theaterName(theaterElement.get().getText())
+                                .location(location)
+                                .showTime(LocalDateTime.now())
+                                .priceRange(priceText)
+                                .bookingUrl(bookingLinkElement.get().getAttribute("href"))
+                                .source("bookmyshow")
+                                .isAvailable(true)
+                                .scrapedAt(LocalDateTime.now())
+                                .build();
                         
                         shows.add(show);
                         log.info("Found show: {}", show);

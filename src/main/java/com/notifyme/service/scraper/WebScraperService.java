@@ -1,6 +1,6 @@
 package com.notifyme.service.scraper;
 
-import com.notifyme.model.MovieShow;
+import com.notifyme.dto.MovieShow;
 import java.util.List;
 
 public interface WebScraperService {

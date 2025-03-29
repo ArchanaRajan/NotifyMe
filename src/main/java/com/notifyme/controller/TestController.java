@@ -1,6 +1,6 @@
 package com.notifyme.controller;
 
-import com.notifyme.model.MovieShow;
+import com.notifyme.dto.MovieShow;
 import com.notifyme.service.NotificationService;
 import com.notifyme.service.scraper.BookMyShowScraperService;
 import lombok.extern.slf4j.Slf4j;

@@ -27,6 +27,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     
     // Spring Retry
     implementation 'org.springframework.retry:spring-retry'
@@ -34,8 +35,8 @@ dependencies {
     
     // Web Scraping
     implementation 'org.jsoup:jsoup:1.15.4'
-    implementation 'org.seleniumhq.selenium:selenium-java:4.8.1'
-    implementation 'io.github.bonigarcia:webdrivermanager:5.3.2'
+    implementation 'org.seleniumhq.selenium:selenium-java:4.18.1'
+    implementation 'io.github.bonigarcia:webdrivermanager:5.7.0'
     implementation 'com.squareup.okhttp3:okhttp:4.9.3'
     
     // Database
@@ -47,7 +48,7 @@ dependencies {
     
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.springframework.retry:spring-retry'
     
     // Utilities
     implementation 'org.apache.commons:commons-lang3:3.14.0'

@@ -1,6 +1,6 @@
 package com.notifyme.scraper;
 
-import com.notifyme.model.MovieShow;
+import com.notifyme.dto.MovieShow;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;

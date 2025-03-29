@@ -1,7 +1,7 @@
 package com.notifyme.service.scraper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.notifyme.model.MovieShow;
+import com.notifyme.dto.MovieShow;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
