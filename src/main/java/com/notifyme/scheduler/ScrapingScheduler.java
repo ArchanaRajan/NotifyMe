@@ -1,6 +1,6 @@
 package com.notifyme.scheduler;
 
-import com.notifyme.service.scraper.BookMyShowScraperService;
+import com.notifyme.scraper.PVRScraper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,15 +14,14 @@ import java.util.List;
 public class ScrapingScheduler {
 
     @Autowired
-    private BookMyShowScraperService bookMyShowScraperService;
+    private PVRScraper pvrScraper;
 
     // List of movies to monitor
     private final List<String> moviesToMonitor = Arrays.asList(
-        "Interstellar",
-        "Snow White");
+        "BLACK BAG");
 
     // List of locations to monitor
-    private final List<String> locationsToMonitor = Arrays.asList("Bangalore", "Chennai");
+    private final List<String> locationsToMonitor = Arrays.asList("Chennai");
 
     @Scheduled(cron = "0 */3 * * * *") // Run every 3 minutes
     public void scrapeBookMyShow() {
@@ -30,7 +29,7 @@ public class ScrapingScheduler {
         for (String movie : moviesToMonitor) {
             for (String location : locationsToMonitor) {
                 try {
-                    bookMyShowScraperService.scrapeMovieShows(movie, location);
+                    pvrScraper.scrapeMovieShows(movie, location);
                     // Add delay between requests to avoid rate limiting
                     Thread.sleep(5000);
                 } catch (Exception e) {
