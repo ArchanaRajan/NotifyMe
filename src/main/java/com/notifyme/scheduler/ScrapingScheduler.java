@@ -27,7 +27,7 @@ public class ScrapingScheduler {
     // List of locations to monitor
     private final List<String> locationsToMonitor = Arrays.asList("Chennai");
 
-    @Scheduled(cron = "0 */3 * * * *") // Run every 3 minutes
+    @Scheduled(cron = "0 */10 * * * *") // Run every 10 minutes
     public void scrapeMovieShows() {
         log.info("Starting movie show scraping job");
         
