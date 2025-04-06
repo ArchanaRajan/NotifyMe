@@ -1,16 +1,19 @@
 package com.notifyme.scraper;
 
 import com.notifyme.dto.MovieShow;
+import com.notifyme.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,8 +50,17 @@ public class BookMyShowScraper extends BaseScraper {
 
     @Value("${scraping.bookmyshow.delay-between-requests:2000}")
     private long delayBetweenRequests;
+    
+    @Value("${spring.mail.username}")
+    private String senderEmail;
+    
+    @Value("${notification.email:archana19rajan@gmail.com}")
+    private String recipientEmail;
 
     private final Random random = new Random();
+    
+    @Autowired
+    private EmailService emailService;
 
     public BookMyShowScraper(WebDriver webDriver) {
         super(webDriver);
@@ -155,6 +167,9 @@ public class BookMyShowScraper extends BaseScraper {
                 // 3. Perform the click
                 clickableButton.click();
                 log.info("Successfully clicked 'Book tickets' button for '{}'", movieName);
+                
+                // Send notification that tickets are available
+                sendTicketAvailabilityNotification(movieName, location);
 
             } catch (Exception e) {
                 log.error("Failed to click the 'Book tickets' button for movie '{}'. Error: {}. Trying JavaScript click as fallback.", movieName, e.getMessage());
@@ -162,6 +177,9 @@ public class BookMyShowScraper extends BaseScraper {
                 try {
                    ((JavascriptExecutor) webDriver).executeScript("arguments[0].click();", bookTicketsButton.get());
                    log.info("Successfully clicked 'Book tickets' button via JavaScript fallback.");
+                   
+                   // Send notification that tickets are available
+                   sendTicketAvailabilityNotification(movieName, location);
                 } catch (Exception jsException) {
                     log.error("JavaScript fallback click also failed for movie '{}': {}", movieName, jsException.getMessage());
                     return shows;
@@ -296,6 +314,33 @@ public class BookMyShowScraper extends BaseScraper {
             Thread.sleep(3000);
         } catch (Exception e) {
             log.error("Error waiting for Cloudflare challenge: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Sends a notification when tickets become available
+     */
+    private void sendTicketAvailabilityNotification(String movieName, String location) {
+        try {
+            log.info("Sending ticket availability notification for movie '{}' in location '{}'", movieName, location);
+            
+            String subject = String.format("Movie Alert: %s is now available!", movieName);
+            String body = String.format(
+                "Dear Movie Fan,\n\n" +
+                "Great news! The movie '%s' is now available for booking in %s on %s.\n\n" +
+                "Don't miss out - book your tickets now!\n\n" +
+                "Best regards,\nNotifyMe Team",
+                movieName,
+                location,
+                LocalDate.now()
+            );
+
+            // Send email directly using EmailService
+            emailService.sendEmail(recipientEmail, subject, body);
+            
+            log.info("Successfully sent ticket availability notification for movie '{}' to {}", movieName, recipientEmail);
+        } catch (Exception e) {
+            log.error("Failed to send ticket availability notification for movie '{}': {}", movieName, e.getMessage());
         }
     }
 }
