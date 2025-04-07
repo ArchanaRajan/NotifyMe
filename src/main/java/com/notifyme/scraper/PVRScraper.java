@@ -1,19 +1,23 @@
 package com.notifyme.scraper;
 
 import com.notifyme.dto.MovieShow;
+import com.notifyme.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -36,6 +40,18 @@ public class PVRScraper extends BaseScraper {
 
     @Value("${scraping.pvr.delay-between-requests:1000}") // Reduced default delay, adjust as needed
     private long delayBetweenRequests;
+    
+    @Value("${spring.mail.username}")
+    private String senderEmail;
+    
+    @Value("${notification.email:archana19rajan@gmail.com}")
+    private String recipientEmail;
+    
+    @Value("${scraping.preferred.pvr.theatre:PVR Theyagaraja Thiruvanmiyur Chennai}")
+    private String preferredTheatre;
+    
+    @Autowired
+    private EmailService emailService;
 
     public PVRScraper(WebDriver webDriver) {
         super(webDriver);
@@ -114,6 +130,10 @@ public class PVRScraper extends BaseScraper {
             // 5. Scrape showtimes from the session page
             List<WebElement> theatreContainers = findElements(THEATRE_CONTAINER_SESSION);
             log.info("Found {} potential theatre containers on session page.", theatreContainers.size());
+            
+            // Flag to track if preferred theatre was found
+            boolean preferredTheatreFound = false;
+            List<String> showTimings = new ArrayList<>();
 
             for (WebElement theatreContainer : theatreContainers) {
                 String theatreName = "Unknown Theatre";
@@ -123,6 +143,12 @@ public class PVRScraper extends BaseScraper {
                     if (theatreNameElement.isPresent()) {
                         theatreName = theatreNameElement.get().getText().trim();
                         log.info("Processing theatre: {}", theatreName);
+                        
+                        // Check if this is the preferred theatre
+                        if (theatreName.contains(preferredTheatre)) {
+                            preferredTheatreFound = true;
+                            log.info("Found preferred theatre: {}", theatreName);
+                        }
                     } else {
                         log.warn("Could not extract theatre name from a container.");
                         continue; // Skip if name isn't found
@@ -151,6 +177,18 @@ public class PVRScraper extends BaseScraper {
                     // Find showtime boxes within the *now visible* content
                     List<WebElement> showtimeBoxes = findElementsWithin(contentDiv.get(), SHOWTIME_CONTAINER_SESSION);
                     log.info("Found {} showtime boxes for theatre '{}'", showtimeBoxes.size(), theatreName);
+                    
+                    // If this is the preferred theatre, collect all show timings
+                    if (theatreName.contains(preferredTheatre)) {
+                        for (WebElement showtimeBox : showtimeBoxes) {
+                            Optional<WebElement> timeElement = findElementWithin(showtimeBox, SHOW_TIME_SESSION);
+                            if (timeElement.isPresent()) {
+                                String showTime = timeElement.get().getText().trim();
+                                showTimings.add(showTime);
+                            }
+                        }
+                        log.info("Found {} show timings for preferred theatre: {}", showTimings.size(), showTimings);
+                    }
 
                     for (WebElement showtimeBox : showtimeBoxes) {
                         try {
@@ -184,6 +222,13 @@ public class PVRScraper extends BaseScraper {
                     log.error("Error processing theatre container: {}", e.getMessage(), e);
                 }
             }
+            
+            // Send notification if preferred theatre was found
+            if (preferredTheatreFound) {
+                sendTicketAvailabilityNotification(movieName, location, preferredTheatre, showTimings);
+            } else {
+                log.info("Preferred theatre '{}' not found for movie '{}'", preferredTheatre, movieName);
+            }
 
         } catch (Exception e) {
             log.error("Major error during PVR scraping for movie '{}': {}", movieName, e.getMessage(), e);
@@ -192,5 +237,45 @@ public class PVRScraper extends BaseScraper {
             // Consider closing the browser tab or navigating away if needed, but usually BaseScraper handles quit
         }
         return shows;
+    }
+    
+    /**
+     * Sends a notification when tickets become available
+     */
+    private void sendTicketAvailabilityNotification(String movieName, String location, String theatreName, List<String> showTimings) {
+        try {
+            log.info("Sending ticket availability notification for movie '{}' in theatre '{}' at location '{}'", 
+                movieName, theatreName, location);
+            
+            String subject = String.format("Movie Alert: %s is now available at %s!", movieName, theatreName);
+            
+            // Format show timings for email body
+            String showTimingsText = showTimings.isEmpty() ? 
+                "No specific show timings available." : 
+                "Available show timings:\n" + showTimings.stream()
+                    .map(time -> "- " + time)
+                    .collect(Collectors.joining("\n"));
+            
+            String body = String.format(
+                "Dear Movie Fan,\n\n" +
+                "Great news! The movie '%s' is now available for booking at %s in %s on %s.\n\n" +
+                "%s\n\n" +
+                "Don't miss out - book your tickets now!\n\n" +
+                "Best regards,\nNotifyMe Team",
+                movieName,
+                theatreName,
+                location,
+                LocalDate.now(),
+                showTimingsText
+            );
+
+            // Send email directly using EmailService
+            emailService.sendEmail(recipientEmail, subject, body);
+            
+            log.info("Successfully sent ticket availability notification for movie '{}' at theatre '{}' to {}", 
+                movieName, theatreName, recipientEmail);
+        } catch (Exception e) {
+            log.error("Failed to send ticket availability notification for movie '{}': {}", movieName, e.getMessage());
+        }
     }
 }
