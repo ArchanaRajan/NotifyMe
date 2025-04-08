@@ -1,5 +1,132 @@
-# NotifyMe
-A Spring Boot application that notifies users via email when their desired movies are released for booking.
+# NotifyMe - Movie Ticket Availability Notifier
+
+A Spring Boot application that notifies users when movie tickets become available for their preferred movies at specific locations.
+
+## Features
+
+- Register for movie ticket availability notifications
+- Email notifications when tickets become available
+- Rate limiting for email notifications
+- Asynchronous processing
+- Web scraping using jsoup for real-time ticket availability from multiple platforms:
+  - BookMyShow (Implemented)
+  - Paytm (Planned)
+  - INOX (Planned)
+  - PVR (Planned)
+  - TicketNew (Planned)
+  - Amazon (Planned)
+
+## Prerequisites
+
+- Java 17 or higher
+- PostgreSQL
+- Gradle
+- Gmail account (for sending notifications)
+
+## Configuration
+
+1. Database Configuration:
+   - Create a PostgreSQL database named 'notifyme'
+   - Update database credentials in application.properties
+
+2. Email Configuration:
+   - Set up Gmail App Password
+   - Update email credentials in application.properties
+
+3. Web Scraping Configuration:
+   - Scraping logs are stored in `logs/scraping/` directory
+   - Each platform has its own log file
+   - Logs are rotated daily
+   - Error logs are separated from regular logs
+
+## Building and Running
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/NotifyMe.git
+cd NotifyMe
+```
+
+2. Build the project:
+```bash
+./gradlew build
+```
+
+3. Run the application:
+```bash
+./gradlew bootRun
+```
+
+## API Endpoints
+
+### Register Notification
+```http
+POST /api/notifications/register
+Content-Type: application/json
+
+{
+    "email": "user@example.com",
+    "movieName": "Movie Name",
+    "location": "City",
+    "startDate": "2024-03-20",
+    "endDate": "2024-03-25"
+}
+```
+
+### Get Notifications
+```http
+GET /api/notifications?email=user@example.com
+```
+
+### Simulate Movie Release (Test Endpoint)
+```http
+POST /api/test/simulate-release
+Content-Type: application/json
+
+{
+    "movieName": "Movie Name",
+    "location": "City",
+    "releaseDate": "2024-03-21"
+}
+```
+
+## Logging
+
+The application uses a comprehensive logging strategy:
+
+1. Application Logs:
+   - Location: `logs/application.log`
+   - Contains general application logs
+   - Rotated daily
+
+2. Scraping Logs:
+   - Location: `logs/scraping/`
+   - Separate files for each platform
+   - Format: JSON for easy parsing
+   - Contains:
+     - Scraping attempts
+     - Success/failure status
+     - Scraped data
+     - Error details
+     - Performance metrics
+
+3. Error Logs:
+   - Location: `logs/error/`
+   - Contains detailed error information
+   - Stack traces
+   - Error context
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## MVP Overview
 NotifyMe MVP provides a simple and efficient email notification service for movie releases. Users can register their movie preferences with location and date range, and receive timely email notifications when tickets become available.
@@ -71,8 +198,8 @@ CREATE TABLE email_template (
        "email": "user@example.com",
        "movieName": "Movie Title",
        "location": "City Name",
-       "startDate": "2024-03-16",
-       "endDate": "2024-04-16"
+       "startDate": "2024-03-21",
+       "endDate": "2024-04-21"
      }
      ```
    - GET /api/v1/notifications/{email}
