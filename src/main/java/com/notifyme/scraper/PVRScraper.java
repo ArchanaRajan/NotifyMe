@@ -37,6 +37,7 @@ public class PVRScraper extends BaseScraper {
     private static final By SHOW_TIME_SESSION = By.cssSelector(".show-times h5"); // The actual time text
     private static final By ACCORDION_HEADER_LINK = By.cssSelector(".p-accordion-header-link"); // Link to expand theatre
     private static final By ACCORDION_CONTENT = By.cssSelector(".p-accordion-content"); // Content div shown after expanding
+    private static final By SHOW_LANGUAGE = By.cssSelector(".eng h6"); // Language of the show
 
     @Value("${scraping.pvr.delay-between-requests:1000}") // Reduced default delay, adjust as needed
     private long delayBetweenRequests;
@@ -154,19 +155,29 @@ public class PVRScraper extends BaseScraper {
                         continue; // Skip if name isn't found
                     }
 
-                    // Check if the theatre section needs expanding (check aria-expanded on header link)
-                    Optional<WebElement> headerLink = findElementWithin(theatreContainer, ACCORDION_HEADER_LINK);
-                    boolean isExpanded = headerLink.map(link -> "true".equalsIgnoreCase(link.getAttribute("aria-expanded"))).orElse(false);
+                    // Check if the theatre section is already expanded
+                    // In the provided HTML, the active tab has class "p-accordion-tab-active"
+                    boolean isAlreadyExpanded = theatreContainer.getAttribute("class").contains("p-accordion-tab-active");
                     
-                    // PVR seems to load the first one expanded, others need click
-                    // Check if content div is present, if not, click header to expand
+                    // Find the content div - it should be visible if the section is already expanded
                     Optional<WebElement> contentDiv = findElementWithin(theatreContainer, ACCORDION_CONTENT, 1); // Short timeout
-                    if (contentDiv.isEmpty()) {
-                       log.info("Theatre '{}' content not visible, attempting to expand.", theatreName);
-                       headerLink.ifPresent(WebElement::click);
-                       Thread.sleep(delayBetweenRequests / 2); // Wait for expansion animation/load
-                       // Re-find content after potential click
-                       contentDiv = findElementWithin(theatreContainer, ACCORDION_CONTENT, 5); // Longer timeout after click
+                    
+                    // If content is not visible and section is not already expanded, try to expand it
+                    if (contentDiv.isEmpty() && !isAlreadyExpanded) {
+                        log.info("Theatre '{}' content not visible, attempting to expand.", theatreName);
+                        try {
+                            // Try JavaScript click instead of direct click to avoid the error
+                            Optional<WebElement> headerLink = findElementWithin(theatreContainer, ACCORDION_HEADER_LINK);
+                            if (headerLink.isPresent()) {
+                                ((JavascriptExecutor) webDriver).executeScript("arguments[0].click();", headerLink.get());
+                                log.info("Successfully clicked header link via JavaScript for theatre '{}'", theatreName);
+                            }
+                        } catch (Exception e) {
+                            log.error("Failed to expand theatre '{}' section: {}", theatreName, e.getMessage());
+                        }
+                        Thread.sleep(delayBetweenRequests / 2); // Wait for expansion animation/load
+                        // Re-find content after potential click
+                        contentDiv = findElementWithin(theatreContainer, ACCORDION_CONTENT, 5); // Longer timeout after click
                     }
 
                     if (contentDiv.isEmpty()) {
@@ -174,7 +185,7 @@ public class PVRScraper extends BaseScraper {
                         continue;
                     }
                     
-                    // Find showtime boxes within the *now visible* content
+                    // Find showtime boxes within the content
                     List<WebElement> showtimeBoxes = findElementsWithin(contentDiv.get(), SHOWTIME_CONTAINER_SESSION);
                     log.info("Found {} showtime boxes for theatre '{}'", showtimeBoxes.size(), theatreName);
                     
@@ -182,9 +193,16 @@ public class PVRScraper extends BaseScraper {
                     if (theatreName.contains(preferredTheatre)) {
                         for (WebElement showtimeBox : showtimeBoxes) {
                             Optional<WebElement> timeElement = findElementWithin(showtimeBox, SHOW_TIME_SESSION);
+                            Optional<WebElement> languageElement = findElementWithin(showtimeBox, SHOW_LANGUAGE);
+                            
                             if (timeElement.isPresent()) {
                                 String showTime = timeElement.get().getText().trim();
-                                showTimings.add(showTime);
+                                String language = languageElement.map(WebElement::getText).map(String::trim).orElse("");
+                                
+                                // Format the show time with language if available
+                                String formattedTime = language.isEmpty() ? showTime : showTime + " (" + language + ")";
+                                showTimings.add(formattedTime);
+                                log.info("Added show timing: {}", formattedTime);
                             }
                         }
                         log.info("Found {} show timings for preferred theatre: {}", showTimings.size(), showTimings);
@@ -193,8 +211,11 @@ public class PVRScraper extends BaseScraper {
                     for (WebElement showtimeBox : showtimeBoxes) {
                         try {
                             Optional<WebElement> timeElement = findElementWithin(showtimeBox, SHOW_TIME_SESSION);
+                            Optional<WebElement> languageElement = findElementWithin(showtimeBox, SHOW_LANGUAGE);
+                            
                             if (timeElement.isPresent()) {
                                 String showTime = timeElement.get().getText().trim();
+                                String language = languageElement.map(WebElement::getText).map(String::trim).orElse("");
                                 
                                 // Create MovieShow DTO using Builder
                                 MovieShow show = MovieShow.builder()
@@ -210,7 +231,8 @@ public class PVRScraper extends BaseScraper {
                                     .build();
                                     
                                 shows.add(show);
-                                log.info("Found show: Movie='{}', Theatre='{}', Time='{}'", movieName, theatreName, showTime);
+                                log.info("Found show: Movie='{}', Theatre='{}', Time='{}', Language='{}'", 
+                                    movieName, theatreName, showTime, language);
                             } else {
                                  log.warn("Could not find time element within a showtime box for theatre '{}'", theatreName);
                             }
@@ -250,11 +272,17 @@ public class PVRScraper extends BaseScraper {
             String subject = String.format("Movie Alert: %s is now available at %s!", movieName, theatreName);
             
             // Format show timings for email body
-            String showTimingsText = showTimings.isEmpty() ? 
-                "No specific show timings available." : 
-                "Available show timings:\n" + showTimings.stream()
-                    .map(time -> "- " + time)
-                    .collect(Collectors.joining("\n"));
+            String showTimingsText;
+            if (showTimings.isEmpty()) {
+                showTimingsText = "No specific show timings available.";
+            } else {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Available show timings:\n");
+                for (String time : showTimings) {
+                    sb.append("- ").append(time).append("\n");
+                }
+                showTimingsText = sb.toString();
+            }
             
             String body = String.format(
                 "Dear Movie Fan,\n\n" +
